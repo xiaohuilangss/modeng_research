@@ -9,8 +9,8 @@ import jqdatasdk as jq
 import numpy as np
 import pandas as pd
 import math
+import my_config.future_global_value as fgv
 
-from server.futures.futures_sub import future_global_value as fgv
 from data_source.Data_Sub import get_k_data_jq, add_stk_index_to_df, Index
 from data_source.local_data.update_local_data import LocalData
 from sdk.DataPro import relative_rank

@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     # 归一化
     sc = MinMaxScaler(feature_range=(0, 1))
-    training_set_scaled = sc.fit_transform(training_set)
+    training_set_scaled = sc.fit_transform(np.array(training_set))
 
     # Creating a data structure with 60 timesteps and 1 output
     X_train = []
