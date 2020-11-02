@@ -5,7 +5,7 @@
 """
 import json
 import numpy as np
-
+from pylab import plt
 from data_source.auth_info import jq_login
 from sklearn.preprocessing import MinMaxScaler
 
@@ -109,6 +109,18 @@ class GenLstmTrainData(DataProForStudy):
         for col in self.ochl:
             self.data.loc[:, col] = self.data.apply(lambda x: (x[col]-mu)/delta, axis=1)
 
+    @staticmethod
+    def nd_array_std(nd_array):
+        """
+        对一个nuarray进行归一化
+        :return:
+        """
+        nd_array = np.array(nd_array)
+        shape_origin = nd_array.shape
+        sc = MinMaxScaler(feature_range=(0, 1))
+        nd_array_scaled = sc.fit_transform(nd_array.reshape((-1, 1))).reshape(shape_origin)
+        return nd_array_scaled
+
     def slice_df_to_train_data(self, length):
         """
         函数功能：
@@ -142,13 +154,58 @@ class GenLstmTrainData(DataProForStudy):
             # 保存结果
             r_list.append(
                 (
-                    df_seg.loc[:, feature_cols].values,
+                    self.nd_array_std(df_seg.loc[:, feature_cols].values),
                     df_seg.loc[:, [label_col]].values
                 )
             )
     
         return r_list
-    
+
+    def test_predict_effect(self, test_df, lstm_model, length):
+        """
+        图示预测效果效果
+        :return:
+        """
+
+        # 重置索引
+        df = test_df
+        df.loc[:, 'num'] = list(range(0, len(df)))
+
+        # 进行相应赋值
+        feature_cols = self.feature_col
+        label_col = self.label_col
+
+        # 进行数据切片并预测
+        for idx in df.loc[0:len(df) - length - 1, :].index:
+
+            # 取出这一段的df
+            df_seg = df.loc[idx:idx + length, feature_cols + [label_col]]
+
+            # 保存结果
+            feature = self.nd_array_std(df_seg.loc[:, feature_cols].values)
+            label = df_seg.loc[:, [label_col]].values[-1]
+
+            # 进行预测
+            feature = np.reshape(feature, (-1, feature.shape[0], feature.shape[1]))
+            df.loc[idx, 'rank_predict'] = lstm_model.predict([feature])[0][0]
+            df.loc[idx, 'rank_real'] = label
+
+        # 图示结果
+        fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True)
+
+        ax[0].plot(df['num'], df['close'], 'g*--', label='close')
+        ax[1].plot(df['num'], df['rank_predict'], 'r*--', label='预测')
+        ax[1].plot(df['num'], df['rank_real'], 'g*--', label='实际')
+
+        for _ax in ax:
+            _ax.legend(loc='best')
+
+        plt.tight_layout(h_pad=0)
+        plt.grid()
+
+        plt.show()
+        plt.close(fig)
+
     def get_train_test_data_final(self, steps):
         """
         最终获取训练、测试数据

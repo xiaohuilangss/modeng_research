@@ -239,7 +239,7 @@ class DataProForStudy(StkData):
         self.data = self.data.dropna(axis=0)
         
         if not self.data.empty:
-            self.data[self.label_col] = self.data.apply(lambda x: math.ceil(x['m_median_rank'] / 10), axis=1)
+            self.data.loc[:, self.label_col] = self.data.apply(lambda x: math.ceil(x['m_median_rank'] / 10), axis=1)
 
     def add_label(self, roll_type='max'):
         """
@@ -273,20 +273,26 @@ class DataProForStudy(StkData):
             rb.sort(reverse=True)
     
             return np.median(rb[:l])
+
+        def ratio_mean(rb):
+            rb = rb.values
+            mean = np.mean(rb)
+            return mean/rb[0]
         
-        fr = {'max': ratio_max, 'min': ratio_min, 'median': ratio_median}.get(roll_type)
+        fr = {'max': ratio_max, 'min': ratio_min, 'median': ratio_median, 'mean': ratio_mean}.get(roll_type)
 
         self.data['change_ratio_origin'] = self.data['close'].rolling(window=self.window).apply(fr, raw=False)
         self.data['change_ratio'] = self.data['change_ratio_origin'].shift(-self.window)
 
-        """
-        self.day_data.loc[:, ['close', 'm_median_origin', 'm_median']]
-        """
-        
         # 清空空值行
         self.data = self.data.dropna(axis=0)
         
         self.data = self.add_rank_to_col_smart_public(self.data, 'change_ratio')
+
+        """
+            self.data.loc[:, 'num'] = list(range(0, len(self.data)))
+            self.data.plot('num', ['close', 'change_ratio', 'change_ratio_rank'], subplots=True)
+        """
 
         if not self.data.empty:
             self.data[self.label_col] = self.data.apply(lambda x: math.ceil(x['change_ratio_rank']*100 / 10), axis=1)
