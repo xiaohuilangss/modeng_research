@@ -1,0 +1,2 @@
+model_checkpoint_path: "lstm_input_(41, 3)_output_(41, 1)"
+all_model_checkpoint_paths: "lstm_input_(41, 3)_output_(41, 1)"

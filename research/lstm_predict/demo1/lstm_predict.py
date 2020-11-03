@@ -4,8 +4,8 @@ import tensorflow as tf
 import tushare as ts
 
 from my_config.log import MyLog
-from research.lstm_predict.lstm_data_process import GenLstmTrainData
-from test.tf_new_version_test.test4 import NewTf
+from research.lstm_predict.demo1.lstm_data_process import GenLstmTrainData
+from research.lstm_predict.demo1.lstm_train import NewTf
 
 logger_eml = MyLog('lstm_predict').logger
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # 创建TensorFlow模型，使用训练数据进行学习
     nt = NewTf()
-    nt.set_config()
+    nt.set_config(input_shape=(41, 3))
     nt.contract_tf_model()
 
     gltd.test_predict_effect(test_df=test_data, lstm_model=nt.tf_model, length=40)

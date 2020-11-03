@@ -27,6 +27,8 @@ class NewTf:
         self.x_test = None
         self.y_test = None
 
+        self.input_shape = None
+
         self.model_name = None
         self.save_dir = None
         self.model_save_url = None
@@ -57,7 +59,7 @@ class NewTf:
 
         # Adding the first LSTM layer and some Dropout regularisation
         regressor.add(tf.keras.layers.LSTM(units=50, return_sequences=True,
-                                           input_shape=(self.x_train.shape[1], self.x_train.shape[2])))
+                                           input_shape=self.input_shape))
         regressor.add(tf.keras.layers.Dropout(0.2))
 
         # Adding a second LSTM layer and some Dropout regularisation
@@ -105,16 +107,18 @@ class NewTf:
     def predict(self):
         pass
 
-    def set_config(self, input_length, output_length=1, save_dir='./lstm_model_save/', model_name='lstm'):
+    def set_config(self, input_shape, output_length=1, save_dir='./lstm_model_save/', model_name='lstm'):
         """
         一定要在add_data()函数之后
+        :param output_length:
+        :param input_shape: 注意，其输入为tuple，（3， 12），中间空格有和没有很重要，因为模型名字中使用了这个tuple的字符串形式，对空格敏感！
         :param save_dir:
         :param model_name:
         :return:
         """
-
+        self.input_shape = input_shape
         self.model_name = model_name + '_input_%s_output_%s' % (
-        str(input_length), str(output_length))
+            str(input_shape), str(output_length))
         self.save_dir = save_dir
         self.model_save_url = self.save_dir + self.model_name
 
@@ -171,12 +175,10 @@ if __name__ == '__main__':
         x_train=np.array([x[0] for x in train_data]),
         y_train=np.array([x[1] for x in train_data])
     )
-    nt.set_config()
+    nt.set_config(input_shape=(41, 3))
 
     # 定义TensorFlow 的 LSTM模型并训练
     nt.contract_tf_model()
-    # nt.tf_fit(epochs=100)
-
-
+    nt.tf_fit(epochs=100)
 
     end = 0
